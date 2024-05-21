@@ -138,6 +138,7 @@ impl CrdsGossipPush {
         let wallclock_window = self.wallclock_window(now);
         let mut origins = HashSet::new();
         for (from, values) in messages {
+            warn!("Yunhao: process_push_message from={}", from);
             self.num_total.fetch_add(values.len(), Ordering::Relaxed);
             for value in values {
                 if !wallclock_window.contains(&value.wallclock()) {

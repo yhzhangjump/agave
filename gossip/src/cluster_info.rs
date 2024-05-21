@@ -1154,6 +1154,7 @@ impl ClusterInfo {
             .time_gossip_read_lock("get_votes", &self.stats.get_votes)
             .get_votes(cursor)
             .map(|vote| {
+                warn!("Yunhao: ClusterInfo get_votes pubkey={}", vote.value.pubkey());
                 let CrdsData::Vote(_, vote) = &vote.value.data else {
                     panic!("this should not happen!");
                 };
@@ -2440,6 +2441,7 @@ impl ClusterInfo {
                 }
                 Protocol::PushMessage(from, data) => {
                     check_duplicate_instance(&data)?;
+                    warn!("Yunhao: process_packets PushMessage from={}", from);
                     push_messages.push((from, data));
                 }
                 Protocol::PruneMessage(_from, data) => prune_messages.push(data),
@@ -2519,6 +2521,7 @@ impl ClusterInfo {
             let protocol: Protocol = packet.deserialize_slice(..).ok()?;
             protocol.sanitize().ok()?;
             let protocol = protocol.par_verify(&self.stats)?;
+            warn!("Yunhao: run_socket_consume: verifying packet socket_addr={}", packet.meta().socket_addr());
             Some((packet.meta().socket_addr(), protocol))
         };
         let packets: Vec<_> = {

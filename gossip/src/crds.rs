@@ -86,6 +86,8 @@ pub struct Crds {
     // Mapping from nodes' pubkeys to their respective shred-version.
     shred_versions: HashMap<Pubkey, u16>,
     stats: Mutex<CrdsStats>,
+    froms1: HashMap<Pubkey, u64>,
+    froms2: HashMap<Pubkey, u64>,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -187,6 +189,8 @@ impl Default for Crds {
             purged: VecDeque::default(),
             shred_versions: HashMap::default(),
             stats: Mutex::<CrdsStats>::default(),
+            froms1: HashMap::default(),
+            froms2: HashMap::default(),
         }
     }
 }
@@ -242,13 +246,18 @@ impl Crds {
                 stats.record_insert(&value, route);
                 let entry_index = entry.index();
                 self.shards.insert(entry_index, &value);
+                warn!("Yunhao: crd insert pubkey={}, ordinal={}, index={}", value.value.pubkey(), value.ordinal, entry_index);
                 match &value.value.data {
                     CrdsData::LegacyContactInfo(node) => {
                         self.nodes.insert(entry_index);
                         self.shred_versions.insert(pubkey, node.shred_version());
                     }
-                    CrdsData::Vote(_, _) => {
-                        self.votes.insert(value.ordinal, entry_index);
+                    CrdsData::Vote(_, vote) => {
+                        if !self.froms1.contains_key(&vote.from) {
+                            warn!("Yunhao CrdsData::Vote insert1 key={}", vote.from);
+                            self.froms1.insert(vote.from, 1);
+                        }
+                       self.votes.insert(value.ordinal, entry_index);
                     }
                     CrdsData::EpochSlots(_, _) => {
                         self.epoch_slots.insert(value.ordinal, entry_index);
@@ -279,8 +288,12 @@ impl Crds {
                             CrdsData::LegacyContactInfo(_)
                         );
                     }
-                    CrdsData::Vote(_, _) => {
+                    CrdsData::Vote(_, vote) => {
                         self.votes.remove(&entry.get().ordinal);
+                        if !self.froms2.contains_key(&vote.from) {
+                            warn!("Yunhao CrdsData::Vote insert2 key={}", vote.from);
+                            self.froms2.insert(vote.from, 1);
+                        }
                         self.votes.insert(value.ordinal, entry_index);
                     }
                     CrdsData::EpochSlots(_, _) => {
@@ -363,6 +376,7 @@ impl Crds {
         cursor: &'a mut Cursor,
     ) -> impl Iterator<Item = &'a VersionedCrdsValue> {
         let range = (Bound::Included(cursor.ordinal()), Bound::Unbounded);
+        warn!("Yunhao: get_votes: ordinal={}", cursor.ordinal());
         self.votes.range(range).map(move |(ordinal, index)| {
             cursor.consume(*ordinal);
             self.table.index(*index)
@@ -593,6 +607,7 @@ impl Crds {
                     self.nodes.insert(index);
                 }
                 CrdsData::Vote(_, _) => {
+                    //warn!("CrdsData::Vote insert3 key={}", vote.from);
                     self.votes.insert(value.ordinal, index);
                 }
                 CrdsData::EpochSlots(_, _) => {

@@ -354,6 +354,7 @@ impl ClusterInfoVoteListener {
             })
             .filter_map(|(tx, packet_batch)| {
                 let (vote_account_key, vote, ..) = vote_parser::parse_vote_transaction(&tx)?;
+                warn!("Yunhao: verify_votes: vote_account_key={}, timestamp={:?}", vote_account_key, vote.timestamp());
                 let slot = vote.last_voted_slot()?;
                 let epoch = epoch_schedule.get_epoch(slot);
                 let authorized_voter = root_bank
@@ -609,6 +610,7 @@ impl ClusterInfoVoteListener {
             // Should not early return from this point onwards until `process_votes()`
             // returns below to avoid missing any potential `optimistic_confirmed_slots`
             let gossip_vote_txs: Vec<_> = gossip_vote_txs_receiver.try_iter().flatten().collect();
+            warn!("Yunhao: listen_and_confirm_votes, gossip_vote_txs.len()={}", gossip_vote_txs.len());
             let replay_votes: Vec<_> = replay_votes_receiver.try_iter().collect();
             if !gossip_vote_txs.is_empty() || !replay_votes.is_empty() {
                 return Ok(Self::filter_and_confirm_with_new_votes(
@@ -785,6 +787,7 @@ impl ClusterInfoVoteListener {
             .zip(repeat(/*is_gossip:*/ true))
             .chain(replayed_votes.into_iter().zip(repeat(/*is_gossip:*/ false)));
         for ((vote_pubkey, vote, _switch_proof, signature), is_gossip) in votes {
+            warn!("Yunhao: got gossip vote txn with pubkey={}, timestamp={:?}", vote_pubkey, vote.timestamp());
             Self::track_new_votes_and_notify_confirmations(
                 vote,
                 &vote_pubkey,
