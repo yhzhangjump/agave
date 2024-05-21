@@ -3100,7 +3100,7 @@ fn filter_on_shred_version(
                 CrdsData::ContactInfo(node) => node.pubkey() == from,
                 CrdsData::LegacyContactInfo(node) => node.pubkey() == from,
                 CrdsData::NodeInstance(_) => true,
-                _ => false,
+                _ => true,
             })
         }
         let num_skipped = num_values - values.len();
