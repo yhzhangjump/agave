@@ -3084,6 +3084,7 @@ fn filter_on_shred_version(
         // * their propagation across cluster is expedited.
         // * prevent two running instances of the same identity key cross
         //   contaminate gossip between clusters.
+        warn!("Yunhao: filter_on_shred_version from.version={:?}", crds.get_shred_version(from));
         if crds.get_shred_version(from) == Some(self_shred_version) {
             values.retain(|value| match &value.data {
                 // Allow contact-infos so that shred-versions are updated.
