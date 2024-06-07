@@ -68,6 +68,7 @@ impl LatestValidatorVotePacket {
                     .ok_or(DeserializedPacketError::VoteTransactionError)?;
                 let slot = vote_state_update_instruction.last_voted_slot().unwrap_or(0);
                 let timestamp = vote_state_update_instruction.timestamp();
+                warn!("Yunhao: latest_unprocessed_votes new_from_immutable vote={:?}", vote);
 
                 Ok(Self {
                     vote: Some(vote),
@@ -176,7 +177,10 @@ impl LatestUnprocessedVotes {
             if let Some(vote) = self.update_latest_vote(vote) {
                 match vote.vote_source {
                     VoteSource::Gossip => num_dropped_gossip += 1,
-                    VoteSource::Tpu => num_dropped_tpu += 1,
+                    VoteSource::Tpu => {
+                        num_dropped_tpu += 1;
+                        warn!("Yunhao: latest_unprocessed_votes.insert_batch TPU vote dropped! {:?}", vote);
+                    },
                 }
             }
         }

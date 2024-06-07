@@ -165,6 +165,7 @@ impl PacketReceiver {
             slot_metrics_tracker
                 .increment_newly_buffered_packets_count(deserialized_packets.len() as u64);
 
+            warn!("Yunhao: insert into unprocessed_transaction_storage: {:?}", deserialized_packets[0].transaction());
             let insert_packet_batches_summary =
                 unprocessed_transaction_storage.insert_batch(deserialized_packets);
             slot_metrics_tracker

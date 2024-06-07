@@ -724,6 +724,7 @@ impl BankingStage {
         let mut slot_metrics_tracker = LeaderSlotMetricsTracker::new(id);
         let mut last_metrics_update = Instant::now();
 
+        warn!("Yunhao: process_loop for VoteSource::Tpu w/ packet_receiver = tpu_vote_receiver");
         loop {
             if !unprocessed_transaction_storage.is_empty()
                 || last_metrics_update.elapsed() >= SLOT_BOUNDARY_CHECK_PERIOD

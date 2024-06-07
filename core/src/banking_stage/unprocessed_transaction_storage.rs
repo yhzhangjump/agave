@@ -205,12 +205,15 @@ fn consume_scan_should_process_packet(
         // This prevents lower-priority transactions from taking locks
         // needed by higher-priority txs that were skipped by this check.
         if !payload.account_locks.take_locks(message) {
+            warn!("Yunhao: consume_scan_should_process_packet LATER {:?}", packet);
             return ProcessingDecision::Later;
         }
 
+        warn!("Yunhao: consume_scan_should_process_packet NOW {:?}", packet);
         payload.sanitized_transactions.push(sanitized_transaction);
         ProcessingDecision::Now
     } else {
+        warn!("Yunhao: consume_scan_should_process_packet NEVER {:?}", packet);
         payload
             .message_hash_to_transaction
             .remove(packet.message_hash());
@@ -333,9 +336,10 @@ impl UnprocessedTransactionStorage {
             Self::VoteStorage(vote_storage) => {
                 InsertPacketBatchSummary::from(vote_storage.insert_batch(deserialized_packets))
             }
-            Self::LocalTransactionStorage(transaction_storage) => InsertPacketBatchSummary::from(
+            Self::LocalTransactionStorage(transaction_storage) => {
+                InsertPacketBatchSummary::from(
                 transaction_storage.insert_batch(deserialized_packets),
-            ),
+            )},
         }
     }
 
@@ -421,6 +425,7 @@ impl VoteStorage {
         &mut self,
         deserialized_packets: Vec<ImmutableDeserializedPacket>,
     ) -> VoteBatchInsertionMetrics {
+        warn!("Yunhao: latest_unprocessed_votes insert_batch in VoteStorage: {:?}", deserialized_packets);
         self.latest_unprocessed_votes
             .insert_batch(
                 deserialized_packets
@@ -475,6 +480,7 @@ impl VoteStorage {
                 consume_scan_should_process_packet(&bank, banking_stage_stats, packet, payload)
             };
 
+        warn!("Yunhao: vote_storage.process_packets latest_unprocessed_votes={:?}", self.latest_unprocessed_votes);
         // Based on the stake distribution present in the supplied bank, drain the unprocessed votes
         // from each validator using a weighted random ordering. Votes from validators with
         // 0 stake are ignored.
@@ -482,6 +488,7 @@ impl VoteStorage {
             .latest_unprocessed_votes
             .drain_unprocessed(bank.clone());
 
+        warn!("Yunhao: vote_storage.process_packets all_vote_packets={:?}", all_vote_packets);
         // vote storage does not have a message hash map, so pass in an empty one
         let mut dummy_message_hash_to_transaction = HashMap::new();
         let mut scanner = create_consume_multi_iterator(

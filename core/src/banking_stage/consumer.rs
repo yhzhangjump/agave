@@ -161,6 +161,7 @@ impl Consumer {
             return None;
         }
 
+        warn!("Yunhao: do_process_packets (consume from unprocessed_packets_transactions) packets_to_process: {:?} ||| sanitized txns: {:?}", &packets_to_process, &payload.sanitized_transactions);
         let packets_to_process_len = packets_to_process.len();
         let (process_transactions_summary, process_packets_transactions_us) = measure_us!(self
             .process_packets_transactions(
