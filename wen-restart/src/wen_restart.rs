@@ -204,6 +204,7 @@ pub(crate) fn send_restart_last_voted_fork_slots(
     last_voted_fork_slots: &[Slot],
     last_vote_bankhash: Hash,
 ) -> Result<LastVotedForkSlotsRecord> {
+    warn!("Yunhao: sent last voted slots={:?}", last_voted_fork_slots);
     cluster_info.push_restart_last_voted_fork_slots(last_voted_fork_slots, last_vote_bankhash)?;
     Ok(LastVotedForkSlotsRecord {
         last_voted_fork_slots: last_voted_fork_slots.to_vec(),
@@ -360,6 +361,7 @@ pub(crate) fn find_heaviest_fork(
     let heaviest_fork_slot = slots.last().map_or(root_slot, |x| *x);
 
     let mut expected_parent = root_slot;
+    warn!("Yunhao: root={}, heaviest_fork_slot={}", root_slot, heaviest_fork_slot);
     for slot in &slots {
         if exit.load(Ordering::Relaxed) {
             return Err(WenRestartError::Exiting.into());
@@ -386,6 +388,7 @@ pub(crate) fn find_heaviest_fork(
                 return Err(WenRestartError::BlockNotFull(*slot).into());
             }
             expected_parent = *slot;
+            warn!("Yunhao: blockstore has {} in full", *slot);
         } else {
             return Err(WenRestartError::BlockNotFound(*slot).into());
         }

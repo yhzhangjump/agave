@@ -1378,6 +1378,7 @@ impl Validator {
         )
         .map_err(ValidatorError::Other)?;
 
+        warn!("Yunhao: in_wen_restart={}, path={:?}", in_wen_restart, config.wen_restart_proto_path);
         if in_wen_restart {
             info!("Waiting for wen_restart phase one to finish");
             wait_for_wen_restart(WenRestartConfig {
