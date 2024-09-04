@@ -189,7 +189,14 @@ pub(crate) fn send_restart_last_voted_fork_slots(
     last_voted_fork_slots: &[Slot],
     last_vote_bankhash: Hash,
 ) -> Result<LastVotedForkSlotsRecord> {
-    cluster_info.push_restart_last_voted_fork_slots(last_voted_fork_slots, last_vote_bankhash)?;
+    let mut cnt = 0;
+    loop {
+        cluster_info.push_restart_last_voted_fork_slots(last_voted_fork_slots, last_vote_bankhash)?;
+        cnt = cnt + 1;
+        warn!("Yunhao: sending restart_last_voted_fork_slots message #{}", cnt);
+        sleep(Duration::from_millis(1000));
+    }
+
     Ok(LastVotedForkSlotsRecord {
         last_voted_fork_slots: last_voted_fork_slots.to_vec(),
         last_vote_bankhash: last_vote_bankhash.to_string(),
@@ -794,12 +801,14 @@ pub struct WenRestartConfig {
 }
 
 pub fn wait_for_wen_restart(config: WenRestartConfig) -> Result<()> {
+    warn!("Yunhao: entering wen_restart");
     let (mut state, mut progress) = initialize(
         &config.wen_restart_path,
         config.last_vote.clone(),
         config.blockstore.clone(),
     )?;
     loop {
+        warn!("Yunhao: after wen_restart init, state={:?}", state);
         state = match state {
             WenRestartProgressInternalState::Init {
                 last_voted_fork_slots,

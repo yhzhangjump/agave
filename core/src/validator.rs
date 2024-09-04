@@ -1285,6 +1285,7 @@ impl Validator {
             };
 
         let in_wen_restart = config.wen_restart_proto_path.is_some() && !waited_for_supermajority;
+        warn!("Yunhao: in_wen_restart={}, proto_path={:?}", in_wen_restart, config.wen_restart_proto_path);
         let wen_restart_repair_slots = if in_wen_restart {
             Some(Arc::new(RwLock::new(Vec::new())))
         } else {
