@@ -1,5 +1,7 @@
 //! The `validator` module hosts all the validator microservices.
 
+use std::str::FromStr;
+
 pub use solana_perf::report_target_features;
 use {
     crate::{
@@ -1372,6 +1374,7 @@ impl Validator {
             info!("Waiting for wen_restart phase one to finish");
             match wait_for_wen_restart(WenRestartConfig {
                 wen_restart_path: config.wen_restart_proto_path.clone().unwrap(),
+                wen_restart_coordinator: Pubkey::from_str("6tr7Acuwy5PiEEQMyyDphTeEoY2MAz4nncjEvcZAcERo").unwrap(),
                 last_vote,
                 blockstore: blockstore.clone(),
                 cluster_info: cluster_info.clone(),
