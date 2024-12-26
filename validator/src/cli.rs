@@ -1547,6 +1547,7 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
                 .takes_value(true)
                 .required(false)
                 .conflicts_with("wait_for_supermajority")
+                .requires("wen_restart_coordinator")
                 .help(
                     "When specified, the validator will enter Wen Restart mode which \
                     pauses normal activity. Validators in this mode will gossip their last \
@@ -1566,6 +1567,19 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
                     \n\n\
                     If wen_restart fails, refer to the progress file (in proto3 format) for \
                     further debugging.",
+                ),
+        )
+        .arg(
+            Arg::with_name("wen_restart_coordinator")
+                .long("wen-restart-coordinator")
+                .hidden(hidden_unless_forced())
+                .value_name("PUBKEY")
+                .takes_value(true)
+                .required(false)
+                .requires("wen_restart")
+                .help(
+                    "Specifies the pubkey of the leader used in wen restart. \
+                    May get stuck if the leader used is different from others.",
                 ),
         )
         .args(&thread_args(&default_args.thread_args))

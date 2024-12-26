@@ -1,7 +1,5 @@
 //! The `validator` module hosts all the validator microservices.
 
-use std::str::FromStr;
-
 pub use solana_perf::report_target_features;
 use {
     crate::{
@@ -271,6 +269,7 @@ pub struct ValidatorConfig {
     pub generator_config: Option<GeneratorConfig>,
     pub use_snapshot_archives_at_startup: UseSnapshotArchivesAtStartup,
     pub wen_restart_proto_path: Option<PathBuf>,
+    pub wen_restart_coordinator: Option<Pubkey>,
     pub unified_scheduler_handler_threads: Option<usize>,
     pub ip_echo_server_threads: NonZeroUsize,
     pub replay_forks_threads: NonZeroUsize,
@@ -342,6 +341,7 @@ impl Default for ValidatorConfig {
             generator_config: None,
             use_snapshot_archives_at_startup: UseSnapshotArchivesAtStartup::default(),
             wen_restart_proto_path: None,
+            wen_restart_coordinator: None,
             unified_scheduler_handler_threads: None,
             ip_echo_server_threads: NonZeroUsize::new(1).expect("1 is non-zero"),
             replay_forks_threads: NonZeroUsize::new(1).expect("1 is non-zero"),
@@ -1372,9 +1372,10 @@ impl Validator {
 
         if in_wen_restart {
             info!("Waiting for wen_restart phase one to finish");
+            warn!("Yunhao: wen-restart coordinator is {:?}", config.wen_restart_coordinator);
             match wait_for_wen_restart(WenRestartConfig {
                 wen_restart_path: config.wen_restart_proto_path.clone().unwrap(),
-                wen_restart_coordinator: Pubkey::from_str("6tr7Acuwy5PiEEQMyyDphTeEoY2MAz4nncjEvcZAcERo").unwrap(),
+                wen_restart_coordinator: config.wen_restart_coordinator.unwrap(),
                 last_vote,
                 blockstore: blockstore.clone(),
                 cluster_info: cluster_info.clone(),
